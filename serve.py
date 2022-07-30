@@ -30,21 +30,31 @@ config = {
 loren = Loren(config, verbose=False)
 app = Flask(__name__)
 
+@app.route('/', methods=['GET'])
+def home():
+    return 'Welcome to LOREN.'
+
 @app.route('/check', methods=['POST'])
-def json_example():
+def check():
     req = request.get_json()
-    text = req['text']
+    text = req.get('text', None)
     claims = []
 
-    for sentence in sent_tokenize(text):
-        js = loren.check(sentence)
-        claims.append({
-            'claim': js['claim'],
-            'truth': js['claim_veracity'],
-            'evidence': js['evidence']
-        })
+    if text:
+        for idx, sentence in enumerate(sent_tokenize(text)):
+            js = loren.check(sentence)
+            claims.append({
+                'claim': js['claim'],
+                'evidence': js['evidence'],
+                'score': veracityWeight(js['claim_veracity'])
+            })
 
     return jsonify({ 'claims': claims })
+
+def veracityWeight(veracity):
+    if veracity == "SUPPORTS": return 1
+    elif veracity == "REFUTES": return -1
+    else: return 0
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0")
