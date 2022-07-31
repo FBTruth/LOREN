@@ -42,12 +42,19 @@ def check():
 
     if text:
         for idx, sentence in enumerate(sent_tokenize(text)):
-            js = loren.check(sentence)
-            claims.append({
-                'claim': js['claim'],
-                'evidence': js['evidence'],
-                'score': veracityWeight(js['claim_veracity'])
-            })
+            try:
+                js = loren.check(sentence)
+                claims.append({
+                    'claim': js['claim'],
+                    'evidence': js['evidence'],
+                    'score': veracityWeight(js['claim_veracity'])
+                })
+            except:
+                claims.append({
+                    'claim': sentence,
+                    'evidence': [],
+                    'score': None
+                })
 
     return jsonify({ 'claims': claims })
 
